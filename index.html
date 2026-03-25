@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nextdeal92 — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+    --accent:#00ff88;--accent2:#ff6b35;--accent3:#7c3aed;
+    --text:#e8e8f0;--text2:#888899;--border:rgba(255,255,255,0.07);--card:#13131e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+  header{position:sticky;top:0;z-index:10;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);}
+  .logo{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-1px;}
+  .logo span{color:var(--text2);font-weight:400;}
+  .status{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);font-family:'Space Mono',monospace;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  main{position:relative;z-index:1;padding:32px 40px;max-width:1400px;margin:0 auto;}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+  .stat-card.g::before{background:var(--accent);}
+  .stat-card.o::before{background:var(--accent2);}
+  .stat-card.p::before{background:var(--accent3);}
+  .stat-card.b::before{background:#38bdf8;}
+  .stat-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;font-family:'Space Mono',monospace;}
+  .stat-value{font-size:34px;font-weight:800;line-height:1;}
+  .stat-card.g .stat-value{color:var(--accent);}
+  .stat-card.o .stat-value{color:var(--accent2);}
+  .stat-card.p .stat-value{color:var(--accent3);}
+  .stat-card.b .stat-value{color:#38bdf8;}
+  .stat-sub{font-size:11px;color:var(--text2);margin-top:4px;font-family:'Space Mono',monospace;}
+  .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);padding:4px;border-radius:10px;width:fit-content;}
+  .tab{padding:9px 22px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all 0.2s;}
+  .tab.active{background:var(--accent);color:#000;}
+  .tab:hover:not(.active){color:var(--text);}
+  .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+  .table-header{padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+  .table-title{font-size:15px;font-weight:600;}
+  .refresh-btn{background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;font-size:11px;cursor:pointer;font-family:'Space Mono',monospace;transition:all 0.2s;}
+  .refresh-btn:hover{border-color:var(--accent);color:var(--accent);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{padding:11px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text2);font-family:'Space Mono',monospace;border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  tbody td{padding:13px 14px;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;font-family:'Space Mono',monospace;}
+  .badge-encours{background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);}
+  .badge-vendu{background:rgba(0,255,136,0.1);color:var(--accent);border:1px solid rgba(0,255,136,0.25);}
+  .badge-src{background:rgba(124,58,237,0.12);color:#a78bfa;border:1px solid rgba(124,58,237,0.2);font-size:9px;}
+  .mv{font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;}
+  .gv{font-family:'Space Mono',monospace;color:var(--accent2);font-weight:700;}
+  .action-btn{background:transparent;border:1px solid var(--border);color:var(--text2);padding:4px 11px;border-radius:6px;font-size:10px;cursor:pointer;transition:all 0.2s;font-family:'Space Mono',monospace;margin-right:4px;}
+  .action-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .action-btn.sell{border-color:rgba(0,255,136,0.3);color:var(--accent);}
+  .leaderboard{display:grid;gap:10px;}
+  .lb-row{display:flex;align-items:center;gap:14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 18px;transition:all 0.2s;}
+  .lb-row:hover{border-color:rgba(0,255,136,0.15);}
+  .lb-rank{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--text2);width:28px;}
+  .lb-rank.gold{color:#fbbf24;}.lb-rank.silver{color:#94a3b8;}.lb-rank.bronze{color:#cd7c4d;}
+  .lb-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;}
+  .lb-name{font-weight:600;font-size:14px;}
+  .lb-stats{font-size:11px;color:var(--text2);font-family:'Space Mono',monospace;}
+  .lb-gain{font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--accent);}
+  .lb-bar-wrap{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden;max-width:100px;}
+  .lb-bar{height:100%;background:var(--accent);border-radius:2px;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid rgba(0,255,136,0.2);border-radius:18px;padding:28px;width:400px;}
+  .modal h3{font-size:19px;font-weight:700;margin-bottom:6px;}
+  .modal p{color:var(--text2);font-size:12px;margin-bottom:20px;}
+  .modal label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:7px;font-family:'Space Mono',monospace;}
+  .modal input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 14px;font-size:14px;margin-bottom:14px;font-family:'Syne',sans-serif;transition:border-color 0.2s;}
+  .modal input:focus{outline:none;border-color:var(--accent);}
+  .modal-actions{display:flex;gap:10px;margin-top:4px;}
+  .btn-primary{flex:1;background:var(--accent);color:#000;border:none;padding:11px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:opacity 0.2s;}
+  .btn-primary:hover{opacity:0.85;}
+  .btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text2);padding:11px 18px;border-radius:8px;font-size:13px;cursor:pointer;}
+  .loading{display:flex;align-items:center;justify-content:center;padding:50px;color:var(--text2);font-family:'Space Mono',monospace;font-size:12px;gap:10px;}
+  .spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .empty{text-align:center;padding:50px;color:var(--text2);font-size:13px;}
+  .section{display:none;}.section.active{display:block;}
+  @media(max-width:768px){main{padding:16px;}header{padding:14px 16px;}.stats-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">NEXTDEAL<span>92</span></div>
+  <div class="status"><div class="dot"></div><span id="last-update">Chargement...</span></div>
+</header>
+<main>
+  <div class="stats-grid">
+    <div class="stat-card g"><div class="stat-label">Gain estimé total</div><div class="stat-value" id="s-gain">—</div><div class="stat-sub">tous achats</div></div>
+    <div class="stat-card o"><div class="stat-label">En stock</div><div class="stat-value" id="s-stock">—</div><div class="stat-sub">articles en cours</div></div>
+    <div class="stat-card p"><div class="stat-label">Vendus</div><div class="stat-value" id="s-vendus">—</div><div class="stat-sub">articles écoulés</div></div>
+    <div class="stat-card b"><div class="stat-label">Meilleure marge</div><div class="stat-value" id="s-marge">—</div><div class="stat-sub">ratio max</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('stock',this)">📦 Stock</button>
+    <button class="tab" onclick="switchTab('historique',this)">📈 Historique</button>
+    <button class="tab" onclick="switchTab('equipe',this)">👥 Équipe</button>
+  </div>
+  <div class="section active" id="section-stock">
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">Articles en cours</div><button class="refresh-btn" onclick="charger()">↻ Actualiser</button></div>
+      <div id="wrap-stock"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
+    </div>
+  </div>
+  <div class="section" id="section-historique">
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">Historique des ventes</div><button class="refresh-btn" onclick="charger()">↻ Actualiser</button></div>
+      <div id="wrap-histo"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
+    </div>
+  </div>
+  <div class="section" id="section-equipe">
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">Classement équipe</div><button class="refresh-btn" onclick="charger()">↻ Actualiser</button></div>
+      <div id="wrap-equipe" style="padding:20px"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>Marquer comme vendu</h3>
+    <p id="m-titre">—</p>
+    <label>Prix de revente réel (€)</label>
+    <input type="number" id="m-prix" placeholder="ex: 95" step="0.01">
+    <label>Quantité vendue</label>
+    <input type="number" id="m-qte" placeholder="ex: 1" min="1" value="1">
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" onclick="confirmerVente()">✅ Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID="1p8iqJwkqxV_UF_dcml9cq9DTMawhsZWU3wPrb1Odf48";
+const API_KEY="AIzaSyDb1Z2_9C7XHd1l6xm1VBlnHvthOU3DCHQ";
+const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbwNSbH9XLnqJs0x9PTp1ohIrSZxDA_EQ6y8iJZpCgDUPLMTthGIIlbMeezy16Jh2X93-A/exec";
+let rows=[], modalRow=null;
+
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('section-'+name).classList.add('active');
+}
+
+async function charger(){
+  try{
+    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Feuille%201?key=${API_KEY}`);
+    const d=await r.json();
+    if(d.error){throw new Error(d.error.message);}
+    const vals=d.values||[];
+    rows=vals.slice(1).map((r,i)=>({
+      idx:i+2,date:r[0]||'',article:r[1]||'',source:r[2]||'',
+      achat:parseFloat(r[3])||0,revente:parseFloat(r[4])||0,
+      marge:r[5]||'',gain:parseFloat(r[6])||0,
+      qui:r[7]||'',qte:parseInt(r[8])||1,statut:r[9]||'🟡 En cours',
+      prixReel:parseFloat(r[10])||0,gainReel:parseFloat(r[11])||0,lien:r[12]||''
+    }));
+    stats();afficherStock();afficherHisto();afficherEquipe();
+    document.getElementById('last-update').textContent='Màj '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('wrap-stock').innerHTML=`<div class="empty">⚠️ ${e.message}<br><br>Configure la clé API Google dans le fichier index.html</div>`;
+  }
+}
+
+function stats(){
+  const enc=rows.filter(r=>r.statut.includes('cours'));
+  const vend=rows.filter(r=>r.statut.includes('Vendu'));
+  const gt=rows.reduce((s,r)=>s+r.gain,0);
+  const marges=rows.map(r=>parseFloat((r.marge||'0').replace('x',''))||0);
+  document.getElementById('s-gain').textContent=gt.toFixed(0)+'€';
+  document.getElementById('s-stock').textContent=enc.length;
+  document.getElementById('s-vendus').textContent=vend.length;
+  document.getElementById('s-marge').textContent='x'+(marges.length?Math.max(...marges).toFixed(1):0);
+}
+
+function afficherStock(){
+  const enc=rows.filter(r=>r.statut.includes('cours'));
+  const w=document.getElementById('wrap-stock');
+  if(!enc.length){w.innerHTML='<div class="empty">Aucun article en stock</div>';return;}
+  w.innerHTML=`<table><thead><tr><th>Date</th><th>Article</th><th>Source</th><th>Achat</th><th>Revente est.</th><th>Marge</th><th>Gain est.</th><th>Qui</th><th>Qté</th><th>Action</th></tr></thead><tbody>
+  ${enc.map(r=>`<tr>
+    <td style="color:var(--text2);font-family:'Space Mono',monospace;font-size:10px">${r.date}</td>
+    <td title="${r.article}">${r.article.substring(0,32)}${r.article.length>32?'…':''}</td>
+    <td><span class="badge badge-src">${r.source}</span></td>
+    <td style="font-family:'Space Mono',monospace">${r.achat}€</td>
+    <td style="font-family:'Space Mono',monospace">${r.revente}€</td>
+    <td><span class="mv">${r.marge}</span></td>
+    <td><span class="gv">+${r.gain}€</span></td>
+    <td>${r.qui}</td>
+    <td style="font-family:'Space Mono',monospace">${r.qte}</td>
+    <td>
+      ${r.lien?`<a href="${r.lien}" target="_blank" class="action-btn" style="text-decoration:none;display:inline-block">🔗</a>`:''}
+      <button class="action-btn sell" data-idx="${r.idx}" data-article="${r.article.replace(/"/g,'&quot;')}" data-achat="${r.achat}" onclick="openModalBtn(this)">Vendre</button>
+    </td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function afficherHisto(){
+  const vend=rows.filter(r=>r.statut.includes('Vendu'));
+  const w=document.getElementById('wrap-histo');
+  if(!vend.length){w.innerHTML='<div class="empty">Aucune vente enregistrée</div>';return;}
+  w.innerHTML=`<table><thead><tr><th>Date</th><th>Article</th><th>Achat</th><th>Vendu</th><th>Gain réel</th><th>Qui</th><th>Qté</th></tr></thead><tbody>
+  ${vend.map(r=>`<tr>
+    <td style="color:var(--text2);font-family:'Space Mono',monospace;font-size:10px">${r.date}</td>
+    <td title="${r.article}">${r.article.substring(0,38)}${r.article.length>38?'…':''}</td>
+    <td style="font-family:'Space Mono',monospace">${r.achat}€</td>
+    <td style="font-family:'Space Mono',monospace">${r.prixReel}€</td>
+    <td><span class="gv">+${r.gainReel}€</span></td>
+    <td>${r.qui}</td>
+    <td style="font-family:'Space Mono',monospace">${r.qte}</td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function afficherEquipe(){
+  const membres={};
+  rows.forEach(r=>{
+    if(!membres[r.qui])membres[r.qui]={achats:0,gain:0,vendus:0};
+    membres[r.qui].achats++;membres[r.qui].gain+=r.gain;
+    if(r.statut.includes('Vendu'))membres[r.qui].vendus++;
+  });
+  const sorted=Object.entries(membres).sort((a,b)=>b[1].gain-a[1].gain);
+  const maxG=sorted[0]?.[1].gain||1;
+  const medals=['gold','silver','bronze'];
+  const colors=['#fbbf24','#94a3b8','#cd7c4d','#7c3aed','#38bdf8'];
+  const w=document.getElementById('wrap-equipe');
+  if(!sorted.length){w.innerHTML='<div class="empty">Aucune donnée équipe</div>';return;}
+  w.innerHTML=`<div class="leaderboard">${sorted.map(([nom,s],i)=>`
+    <div class="lb-row">
+      <div class="lb-rank ${medals[i]||''}">#${i+1}</div>
+      <div class="lb-avatar" style="background:${colors[i]||'#444'};color:#000">${nom[0].toUpperCase()}</div>
+      <div style="flex:1"><div class="lb-name">${nom}</div><div class="lb-stats">${s.achats} achats · ${s.vendus} vendus</div></div>
+      <div style="flex:1;padding:0 14px"><div class="lb-bar-wrap"><div class="lb-bar" style="width:${(s.gain/maxG*100).toFixed(0)}%"></div></div></div>
+      <div class="lb-gain">+${s.gain.toFixed(0)}€</div>
+    </div>`).join('')}</div>`;
+}
+
+function openModal(idx,nom,achat){
+  modalRow={idx,nom,achat};
+  document.getElementById('m-titre').textContent=nom;
+  document.getElementById('m-prix').value='';
+  document.getElementById('m-qte').value='1';
+  document.getElementById('modal').classList.add('open');
+}
+
+function openModalBtn(btn){
+  const idx=parseInt(btn.dataset.idx);
+  const nom=btn.dataset.article;
+  const achat=parseFloat(btn.dataset.achat);
+  openModal(idx,nom,achat);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');modalRow=null;}
+
+async function confirmerVente(){
+  const prix=parseFloat(document.getElementById('m-prix').value);
+  const qte=parseInt(document.getElementById('m-qte').value)||1;
+  if(!prix||prix<=0){alert('Entre un prix valide');return;}
+  const gain=((prix-modalRow.achat)*qte).toFixed(2);
+  alert(`✅ Gain réel : +${gain}€\n\nMets à jour le statut dans Google Sheets :\n→ Colonne J : ✅ Vendu\n→ Colonne K : ${prix}\n→ Colonne L : ${gain}`);
+  closeModal();
+}
+
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+charger();
+setInterval(charger,60000);
+</script>
+</body>
+</html>
