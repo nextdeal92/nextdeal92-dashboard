@@ -97,10 +97,10 @@
 </header>
 <main>
   <div class="stats-grid">
-    <div class="stat-card g"><div class="stat-label">Gain estimé total</div><div class="stat-value" id="s-gain">—</div><div class="stat-sub" id="s-gain-label">gain réel encaissé</div></div>
-    <div class="stat-card o"><div class="stat-label">En stock</div><div class="stat-value" id="s-stock">—</div><div class="stat-sub">articles en cours</div></div>
+    <div class="stat-card g"><div class="stat-label">Gain estimé restant</div><div class="stat-value" id="s-gain">—</div><div class="stat-sub">articles en stock</div></div>
+    <div class="stat-card o"><div class="stat-label">Gain réel encaissé</div><div class="stat-value" id="s-gain-reel">—</div><div class="stat-sub">articles vendus</div></div>
     <div class="stat-card p"><div class="stat-label">Vendus</div><div class="stat-value" id="s-vendus">—</div><div class="stat-sub">articles écoulés</div></div>
-    <div class="stat-card b"><div class="stat-label">Meilleure marge</div><div class="stat-value" id="s-marge">—</div><div class="stat-sub">ratio max</div></div>
+    <div class="stat-card b"><div class="stat-label">En stock</div><div class="stat-value" id="s-stock">—</div><div class="stat-sub">articles en cours</div></div>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('stock',this)">📦 Stock</button>
@@ -145,7 +145,7 @@
 <script>
 const SHEET_ID="1p8iqJwkqxV_UF_dcml9cq9DTMawhsZWU3wPrb1Odf48";
 const API_KEY="AIzaSyDb1Z2_9C7XHd1l6xm1VBlnHvthOU3DCHQ";
-const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbxalsgxAgCysje1vUL0UGYj1GMfeeX-crSJbtajwDbK2hMWPrPdWX5etlPa2oUsUOYUxg/exec";
+const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbxoK32HHK50_dCSyFXDQvHBjbJS34KSAiYxKgo-HKoaF4wNBsAPw-RJybjDX9Kw2SwUfg/exec";
 let rows=[], modalRow=null;
 
 function switchTab(name,el){
@@ -178,14 +178,14 @@ async function charger(){
 function stats(){
   const enc=rows.filter(r=>r.statut.includes('cours'));
   const vend=rows.filter(r=>r.statut.includes('Vendu'));
-  const gainEstime=rows.reduce((s,r)=>s+r.gain,0);
+  const gainEstime=enc.reduce((s,r)=>s+r.gain,0);
   const gainReel=vend.reduce((s,r)=>s+r.gainReel,0);
   const marges=rows.map(r=>parseFloat((r.marge||'0').replace('x',''))||0);
-  document.getElementById('s-gain').textContent=gainReel.toFixed(0)+'€';
-  document.getElementById('s-gain-label').textContent='gain réel encaissé';
+  document.getElementById('s-gain').textContent=gainEstime.toFixed(0)+'€';
+  document.getElementById('s-gain-reel').textContent=gainReel.toFixed(0)+'€';
   document.getElementById('s-stock').textContent=enc.length;
   document.getElementById('s-vendus').textContent=vend.length;
-  document.getElementById('s-marge').textContent='x'+(marges.length?Math.max(...marges).toFixed(1):0);
+  if(document.getElementById('s-marge'))document.getElementById('s-marge').textContent='x'+(marges.length?Math.max(...marges).toFixed(1):0);
 }
 
 function afficherStock(){
@@ -205,7 +205,7 @@ function afficherStock(){
     <td style="font-family:'Space Mono',monospace">${r.qte}</td>
     <td>
       ${r.lien?`<a href="${r.lien}" target="_blank" class="action-btn" style="text-decoration:none;display:inline-block">🔗</a>`:''}
-      <button class="action-btn sell" data-idx="${r.idx}" data-article="${r.article.replace(/"/g,'&quot;')}" data-achat="${r.achat}" onclick="openModalBtn(this)">Vendre</button>
+      <button class="action-btn sell" data-idx="${r.idx}" data-article="${r.article.replace(/"/g,'&quot;')}" data-achat="${r.achat}" data-qte="${r.qte}" onclick="openModalBtn(this)">Vendre</button>
     </td>
   </tr>`).join('')}
   </tbody></table>`;
@@ -251,8 +251,8 @@ function afficherEquipe(){
     </div>`).join('')}</div>`;
 }
 
-function openModal(idx,nom,achat){
-  modalRow={idx,nom,achat};
+function openModal(idx,nom,achat,qteTotal){
+  modalRow={idx,nom,achat,qteTotal:qteTotal||1};
   document.getElementById('m-titre').textContent=nom;
   document.getElementById('m-prix').value='';
   document.getElementById('m-qte').value='1';
@@ -263,7 +263,8 @@ function openModalBtn(btn){
   const idx=parseInt(btn.dataset.idx);
   const nom=btn.dataset.article;
   const achat=parseFloat(btn.dataset.achat);
-  openModal(idx,nom,achat);
+  const qteTotal=parseInt(btn.dataset.qte)||1;
+  openModal(idx,nom,achat,qteTotal);
 }
 function closeModal(){document.getElementById('modal').classList.remove('open');modalRow=null;}
 
@@ -277,7 +278,7 @@ async function confirmerVente(){
     const resp=await fetch(APPS_SCRIPT_URL,{
       method:'POST',
       headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({rowIndex:modalRow.idx,prixReel:prix,prixAchat:modalRow.achat,qte:qte})
+      body:JSON.stringify({rowIndex:modalRow.idx,prixReel:prix,prixAchat:modalRow.achat,qte:qte,qteTotal:modalRow.qteTotal})
     });
     const data=await resp.json();
     if(data.success){
