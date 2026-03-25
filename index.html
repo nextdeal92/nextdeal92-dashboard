@@ -269,9 +269,22 @@ async function confirmerVente(){
   const prix=parseFloat(document.getElementById('m-prix').value);
   const qte=parseInt(document.getElementById('m-qte').value)||1;
   if(!prix||prix<=0){alert('Entre un prix valide');return;}
-  const gain=((prix-modalRow.achat)*qte).toFixed(2);
-  alert(`✅ Gain réel : +${gain}€\n\nMets à jour le statut dans Google Sheets :\n→ Colonne J : ✅ Vendu\n→ Colonne K : ${prix}\n→ Colonne L : ${gain}`);
-  closeModal();
+  const btn=document.querySelector('.btn-primary');
+  btn.textContent='Envoi...';btn.disabled=true;
+  try{
+    const resp=await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({rowIndex:modalRow.idx,prixReel:prix,prixAchat:modalRow.achat,qte:qte})
+    });
+    const data=await resp.json();
+    if(data.success){
+      alert('Vente enregistree ! Gain reel : +'+data.gainReel+'€');
+      closeModal();
+      setTimeout(charger,1500);
+    }else{alert('Erreur Apps Script : '+data.error);}
+  }catch(e){alert('Erreur : '+e.message);}
+  btn.textContent='Confirmer';btn.disabled=false;
 }
 
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
