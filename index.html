@@ -97,7 +97,7 @@
 </header>
 <main>
   <div class="stats-grid">
-    <div class="stat-card g"><div class="stat-label">Gain estimé total</div><div class="stat-value" id="s-gain">—</div><div class="stat-sub">tous achats</div></div>
+    <div class="stat-card g"><div class="stat-label">Gain estimé total</div><div class="stat-value" id="s-gain">—</div><div class="stat-sub" id="s-gain-label">gain réel encaissé</div></div>
     <div class="stat-card o"><div class="stat-label">En stock</div><div class="stat-value" id="s-stock">—</div><div class="stat-sub">articles en cours</div></div>
     <div class="stat-card p"><div class="stat-label">Vendus</div><div class="stat-value" id="s-vendus">—</div><div class="stat-sub">articles écoulés</div></div>
     <div class="stat-card b"><div class="stat-label">Meilleure marge</div><div class="stat-value" id="s-marge">—</div><div class="stat-sub">ratio max</div></div>
@@ -145,7 +145,7 @@
 <script>
 const SHEET_ID="1p8iqJwkqxV_UF_dcml9cq9DTMawhsZWU3wPrb1Odf48";
 const API_KEY="AIzaSyDb1Z2_9C7XHd1l6xm1VBlnHvthOU3DCHQ";
-const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbwwjJjmU4FasgSHk7Esgr3sZbtCqp7sku3Blo13lcfg9sX6qQOw3H9x-GaaQX7IS_ZlaA/exec";
+const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbwNSbH9XLnqJs0x9PTp1ohIrSZxDA_EQ6y8iJZpCgDUPLMTthGIIlbMeezy16Jh2X93-A/exec";
 let rows=[], modalRow=null;
 
 function switchTab(name,el){
@@ -178,9 +178,11 @@ async function charger(){
 function stats(){
   const enc=rows.filter(r=>r.statut.includes('cours'));
   const vend=rows.filter(r=>r.statut.includes('Vendu'));
-  const gt=rows.reduce((s,r)=>s+r.gain,0);
+  const gainEstime=rows.reduce((s,r)=>s+r.gain,0);
+  const gainReel=vend.reduce((s,r)=>s+r.gainReel,0);
   const marges=rows.map(r=>parseFloat((r.marge||'0').replace('x',''))||0);
-  document.getElementById('s-gain').textContent=gt.toFixed(0)+'€';
+  document.getElementById('s-gain').textContent=gainReel.toFixed(0)+'€';
+  document.getElementById('s-gain-label').textContent='gain réel encaissé';
   document.getElementById('s-stock').textContent=enc.length;
   document.getElementById('s-vendus').textContent=vend.length;
   document.getElementById('s-marge').textContent='x'+(marges.length?Math.max(...marges).toFixed(1):0);
