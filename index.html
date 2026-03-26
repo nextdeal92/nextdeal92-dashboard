@@ -87,7 +87,29 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .empty{text-align:center;padding:50px;color:var(--text2);font-size:13px;}
   .section{display:none;}.section.active{display:block;}
-  @media(max-width:768px){main{padding:16px;}header{padding:14px 16px;}.stats-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:768px){
+  main{padding:12px;}
+  header{padding:12px 16px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .stat-value{font-size:26px;}
+  .tabs{width:100%;overflow-x:auto;}
+  .table-wrap{overflow:hidden;}
+  .desktop-table{display:none !important;}
+  .mobile-cards{display:block !important;}
+  .card-item{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+  .card-item-title{font-size:14px;font-weight:600;margin-bottom:10px;color:var(--text);}
+  .card-item-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .card-item-row:last-child{border-bottom:none;}
+  .card-item-label{color:var(--text2);font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;}
+  .card-item-value{color:var(--text);font-family:'Space Mono',monospace;}
+  .card-item-actions{display:flex;gap:8px;margin-top:12px;}
+  .card-item-actions .action-btn{flex:1;text-align:center;padding:10px;font-size:12px;}
+  .card-item-actions .sell{flex:2;}
+}
+@media(min-width:769px){
+  .mobile-cards{display:none !important;}
+  .desktop-table{display:block !important;}
+}
 </style>
 </head>
 <body>
@@ -108,10 +130,11 @@
     <button class="tab" onclick="switchTab('equipe',this)">👥 Équipe</button>
   </div>
   <div class="section active" id="section-stock">
-    <div class="table-wrap">
+    <div class="table-wrap desktop-table">
       <div class="table-header"><div class="table-title">Articles en cours</div><button class="refresh-btn" onclick="charger()">↻ Actualiser</button></div>
       <div id="wrap-stock"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
     </div>
+    <div class="mobile-cards" id="wrap-stock-mobile"><div class="loading"><div class="spinner"></div>Chargement...</div></div>
   </div>
   <div class="section" id="section-historique">
     <div class="table-wrap">
@@ -155,6 +178,46 @@ function switchTab(name,el){
   document.getElementById('section-'+name).classList.add('active');
 }
 
+function renderMobileCards(){
+  const enc=rows.filter(r=>r.statut.includes('cours'));
+  const w=document.getElementById('wrap-stock-mobile');
+  if(!w)return;
+  if(!enc.length){w.innerHTML='<div class="empty">Aucun article en stock</div>';return;}
+  w.innerHTML=enc.map(r=>`
+    <div class="card-item">
+      <div class="card-item-title">${r.article.substring(0,50)}${r.article.length>50?'…':''}</div>
+      <div class="card-item-row">
+        <span class="card-item-label">Source</span>
+        <span class="badge badge-src">${r.source}</span>
+      </div>
+      <div class="card-item-row">
+        <span class="card-item-label">Achat</span>
+        <span class="card-item-value">${r.achat}€</span>
+      </div>
+      <div class="card-item-row">
+        <span class="card-item-label">Revente est.</span>
+        <span class="card-item-value">${r.revente}€</span>
+      </div>
+      <div class="card-item-row">
+        <span class="card-item-label">Marge</span>
+        <span class="mv">${r.marge}</span>
+      </div>
+      <div class="card-item-row">
+        <span class="card-item-label">Gain estimé</span>
+        <span class="gv">+${r.gain}€</span>
+      </div>
+      <div class="card-item-row">
+        <span class="card-item-label">Qui / Qté</span>
+        <span class="card-item-value">${r.qui} × ${r.qte}</span>
+      </div>
+      <div class="card-item-actions">
+        ${r.lien?`<a href="${r.lien}" target="_blank" class="action-btn" style="text-decoration:none;text-align:center;display:block">🔗 Voir</a>`:''}
+        <button class="action-btn sell" data-idx="${r.idx}" data-article="${r.article.replace(/"/g,'&quot;')}" data-achat="${r.achat}" data-qte="${r.qte}" onclick="openModalBtn(this)">Vendre</button>
+      </div>
+    </div>
+  `).join('');
+}
+
 async function charger(){
   try{
     const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Feuille%201?key=${API_KEY}`);
@@ -189,6 +252,7 @@ function stats(){
 }
 
 function afficherStock(){
+  renderMobileCards();
   const enc=rows.filter(r=>r.statut.includes('cours'));
   const w=document.getElementById('wrap-stock');
   if(!enc.length){w.innerHTML='<div class="empty">Aucun article en stock</div>';return;}
